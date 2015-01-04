@@ -13,4 +13,4 @@ $ python main.py 'YOU_API_TOKEN'
 Todo :
 ===================
 * send the time entries message by email (add argparse options for smtp configuration)
-* allow user to set specifics dates
+* allow user to set a specifics dates range
