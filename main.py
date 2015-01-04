@@ -58,8 +58,19 @@ class TogglObject(object):
         start = current_week_range and current_week_range[0].strftime('%Y-%m-%dT00:00:00+02:00') or None
         end = current_week_range and current_week_range[1].strftime('%Y-%m-%dT23:59:59+02:00') or None
         if not start or not end:
-            return []
+            return start, end, []
         time_entries = self.get_time_entries(start, end)
+        return start, end, self.get_time_entries_datas(time_entries)
+    
+    def get_range_time_entries(self, start, end):
+        start = start.strftime('%Y-%m-%dT00:00:00+02:00') or None
+        end = end.strftime('%Y-%m-%dT23:59:59+02:00') or None
+        if not start or not end:
+            return start, end, []
+        time_entries = self.get_time_entries(start, end)
+        return start, end, self.get_time_entries_datas(time_entries)
+ 
+    def get_time_entries_datas(self, time_entries):
         entries = []
         projects = {}
         for te in time_entries:
@@ -70,13 +81,25 @@ class TogglObject(object):
                     if p and p['data']:
                         projects[p['data']['id']] = p['data']['name']
                 project_name = projects[te['pid']]
+            start = te['start'].split('T')
+            start = start and start[0]
             entries.append({
+                'date': start,
                 'name': te['description'],
                 'duration': te['duration'],
                 'project_name': project_name
             })
-        return start, end, entries
+        return entries
     
+def mkdate(datestr):
+    return datetime.datetime.strptime(datestr, '%Y-%m-%d')
+
+def check_dates(dstart, dend):
+    if not dstart or not dend:
+        return False
+    assert dend > dstart, 'End date must be greater than Start date'
+    return True
+
 
 def add_options(parser):
     parser.add_argument('api_token', type=str, help='Toggl API token')
@@ -95,7 +118,33 @@ def add_options(parser):
                         help='Number of hours in a workday (default : 8)',
                         dest='workhours',
                         default='8')
-    
+    parser.add_argument('--start',
+                        type=mkdate,
+                        help='Start date for time entries',
+                        dest='dstart')
+    parser.add_argument('--end',
+                        type=mkdate,
+                        help='End date for time entries',
+                        dest='dend')
+
+def group_by_date_and_project(time_entries):
+    grouped_entries = {}
+    for entries in time_entries:
+        if entries['date'] in grouped_entries:
+            grouped_entries[entries['date']].append({
+                'project_name': entries['project_name'],
+                'name': entries['name'],
+                'duration': entries['duration'],
+            })
+        else:
+            grouped_entries[entries['date']] = [{
+                'project_name': entries['project_name'],
+                'name': entries['name'],
+                'duration': entries['duration'],
+            }]
+    for date in grouped_entries:
+        grouped_entries[date] = group_by_project(grouped_entries[date])
+    return grouped_entries
 
 def group_by_project(time_entries):
     grouped_entries = {}
@@ -111,6 +160,7 @@ def group_by_project(time_entries):
                 'duration': entries['duration'],
             }]
     return grouped_entries
+    
 
 def get_hms_duration(seconds):
     m, s = divmod(seconds, 60)
@@ -130,27 +180,38 @@ def build_message(start, end, workhours, grouped_entries):
     message += "|              TOGGL TIME ENTRIES              |\n"
     message += "------------------------------------------------\n"
     message += "Here are your Toggl's time entries.\n"
+    start = start.split('T')
+    start = start and start[0]
     message += "From : %s\n" % start
+    end = end.split('T')
+    end = end and end[0]
     message += "To : %s\n" % end
     message += "\n"
     message += "\n"
-    for project in grouped_entries:
-        message += '# Project : %s\n' % project or 'None'
-        for entries in grouped_entries[project]:
-            message += '|   Name : %s\n' % entries['name']
-            message += '|       Duration (H:M:S) : %s\n' % get_hms_duration(entries['duration'])
-            hours = get_float_hours_duration(entries['duration'])
-            message += '|       Duration (Hours) : %s\n' % hours
-            message += '|       Duration (Days) : %s\n' % get_float_days_duration(hours, workhours)
+    for date in grouped_entries:
+        message += '# Date : %s\n' % date or 'None'
+        for project in grouped_entries[date]:
+            message += '    * Project : %s\n' % project or 'None'
+            for entries in grouped_entries[date][project]:
+                message += '    |   Name : %s\n' % entries['name']
+                message += '    |         Duration (H:M:S) : %s\n' % get_hms_duration(entries['duration'])
+                hours = get_float_hours_duration(entries['duration'])
+                message += '    |         Duration (Hours) : %s\n' % hours
+                message += '    |         Duration (Days) : %s\n' % get_float_days_duration(hours, workhours)
     return message
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='List Toggl time entries for invoicing report')
     add_options(parser)
     args = parser.parse_args()
-
     toggl = TogglObject(args.api_token,
                         args.api_version,
                         args.api_url)
-    start, end, entries = toggl.get_week_time_entries()
-    print build_message(start, end, args.workhours, group_by_project(entries))
+    if check_dates(args.dstart, args.dend):
+        start, end, entries = toggl.get_range_time_entries(args.dstart, args.dend)
+    else:
+        start, end, entries = toggl.get_week_time_entries()
+    print build_message(start,
+                        end,
+                        args.workhours,
+                        group_by_date_and_project(entries))
