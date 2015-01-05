@@ -62,4 +62,4 @@ Output :
 
 Todo :
 ===================
-* send the time entries message by email (add argparse options for smtp configuration)
+* send the time entries message by email (add options or a config file for smtp configuration)
