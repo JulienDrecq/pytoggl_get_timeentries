@@ -90,14 +90,16 @@ class TogglObject(object):
                 'project_name': project_name
             })
         return entries
-    
+
+
 def mkdate(datestr):
     return datetime.datetime.strptime(datestr, '%Y-%m-%d')
+
 
 def check_dates(dstart, dend):
     if not dstart or not dend:
         return False
-    assert dend > dstart, 'End date must be greater than Start date'
+    assert dend >= dstart, 'End date must be greater than Start date'
     return True
 
 
@@ -127,6 +129,7 @@ def add_options(parser):
                         help='End date for time entries',
                         dest='dend')
 
+
 def group_by_date_and_project(time_entries):
     grouped_entries = {}
     for entries in time_entries:
@@ -146,6 +149,7 @@ def group_by_date_and_project(time_entries):
         grouped_entries[date] = group_by_project(grouped_entries[date])
     return grouped_entries
 
+
 def group_by_project(time_entries):
     grouped_entries = {}
     for entries in time_entries:
@@ -160,20 +164,23 @@ def group_by_project(time_entries):
                 'duration': entries['duration'],
             }]
     return grouped_entries
-    
+
 
 def get_hms_duration(seconds):
     m, s = divmod(seconds, 60)
     h, m = divmod(m, 60)
     return "%d:%02d:%02d" % (h, m, s)
 
+
 def get_float_hours_duration(seconds):
     m, s = divmod(seconds, 60)
     h, m = divmod(m, 60)
     return round(h + m / 60.0 + s / (60.0 ** 2), 4)
 
+
 def get_float_days_duration(hours, workhours):
     return hours / workhours
+
 
 def build_message(start, end, workhours, grouped_entries):
     message = "------------------------------------------------\n"
