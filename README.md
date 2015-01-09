@@ -8,7 +8,7 @@ How to use :
 ===================
 $ python main.py 'YOU_API_TOKEN'
 
-(python main.py -h for more option : workhours, specific dates range, etc.)
+(python main.py -h for more option : workhours, specific dates range, send_by_mail, etc.)
 
 /!\ For a specific dates range the limit of the return is 1000. So only the first 1000 found time entries are returned /!\ (view Toggl API : https://github.com/toggl/toggl_api_docs/blob/master/chapters/time_entries.md#get-time-entries-started-in-a-specific-time-range)
 
@@ -64,7 +64,7 @@ Output :
 
 Todo :
 ===================
-* send the time entries message by email (add options or a config file for smtp configuration)
+* add options for smtp configuration (server, user, password, etc)
 * add total by project
 * round duration (days) amounts
 * order by dates

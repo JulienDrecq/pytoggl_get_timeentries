@@ -1,9 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-__author__ = 'Maxime JACQUET <m.jacquet@outlook.fr>'
-__version__ = 0.1
+__author__ = 'Maxime JACQUET <m.jacquet@outlook.fr> & Julien DRECQ <drecq.julien@outlook.com>'
+__version__ = 0.2
 import argparse
 import datetime
+import smtplib
 import requests
 from datetime import date, timedelta
 
@@ -87,7 +88,7 @@ class TogglObject(object):
                 'date': start,
                 'name': te['description'],
                 'duration': te['duration'],
-                'project_name': project_name
+                'project_name': project_name,
             })
         return entries
 
@@ -128,6 +129,24 @@ def add_options(parser):
                         type=mkdate,
                         help='End date for time entries',
                         dest='dend')
+    parser.add_argument('--send_by_mail',
+                        action='store_true',
+                        help='Active sending by mail for times entries',
+                        dest='send_by_mail')
+    parser.add_argument('-t', '--to',
+                        type=str,
+                        help='Specify an receiver for sending for times entries',
+                        dest='mail_to')
+    parser.add_argument('-f', '--from',
+                        type=str,
+                        help='Specify an sender for sending for times entries',
+                        dest='mail_from')
+    parser.add_argument('-s', '--subject',
+                        type=str,
+                        help='Specify an subject for sending for times entries',
+                        dest='subject',
+                        default='PyToggl time entries')
+
 
 
 def group_by_date_and_project(time_entries):
@@ -207,6 +226,17 @@ def build_message(start, end, workhours, grouped_entries):
                 message += '    |         Duration (Days) : %s\n' % get_float_days_duration(hours, workhours)
     return message
 
+
+def send_by_mail(message, mail_to, mail_from, subject):
+    server = smtplib.SMTP()
+    server.connect()
+    header = 'To:' + mail_to + '\n' + 'From: ' + mail_from + '\n' + 'Subject:' + subject +'  \n'
+    msg = header + '\n %s \n\n' % message
+    server.sendmail(mail_from, mail_to, msg.encode('utf-8'))
+    server.close()
+    return True
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='List Toggl time entries for invoicing report')
     add_options(parser)
@@ -218,7 +248,14 @@ if __name__ == '__main__':
         start, end, entries = toggl.get_range_time_entries(args.dstart, args.dend)
     else:
         start, end, entries = toggl.get_week_time_entries()
-    print build_message(start,
-                        end,
-                        args.workhours,
-                        group_by_date_and_project(entries))
+    if args.send_by_mail and args.mail_to and args.mail_from:
+        message = build_message(start,
+                            end,
+                            args.workhours,
+                            group_by_date_and_project(entries))
+        send_by_mail(message, args.mail_to, args.mail_from, args.subject)
+    else:
+        print build_message(start,
+                            end,
+                            args.workhours,
+                            group_by_date_and_project(entries))
