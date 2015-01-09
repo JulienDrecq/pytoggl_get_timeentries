@@ -64,3 +64,4 @@ Todo :
 ===================
 * send the time entries message by email (add options or a config file for smtp configuration)
 * add total by project
+* roud amounts
