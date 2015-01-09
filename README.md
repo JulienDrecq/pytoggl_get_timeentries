@@ -1,14 +1,14 @@
 pytoggl_get_timeentries
 ===================
 
-A small python script to get your current work week Toggl time entries
+A small python script to get your current work week Toggl time entries (or for a specific dates range)
 
 
 How to use : 
 ===================
 $ python main.py 'YOU_API_TOKEN'
 
-(python main.py -h for more option : workhours, specific date range, etc.)
+(python main.py -h for more option : workhours, specific dates range, etc.)
 
 /!\ For a specific dates range the limit of the return is 1000. So only the first 1000 found time entries are returned /!\ (view Toggl API : https://github.com/toggl/toggl_api_docs/blob/master/chapters/time_entries.md#get-time-entries-started-in-a-specific-time-range)
 
