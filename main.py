@@ -6,6 +6,7 @@ import argparse
 import datetime
 import smtplib
 import requests
+import collections
 from datetime import date, timedelta
 
 
@@ -148,6 +149,9 @@ def add_options(parser):
                         default='PyToggl time entries')
 
 
+def get_ordered_dict(datas):
+    return collections.OrderedDict(sorted(datas.items()))
+
 
 def group_by_date_and_project(time_entries):
     grouped_entries = {}
@@ -166,7 +170,7 @@ def group_by_date_and_project(time_entries):
             }]
     for date in grouped_entries:
         grouped_entries[date] = group_by_project(grouped_entries[date])
-    return grouped_entries
+    return get_ordered_dict(grouped_entries)
 
 
 def group_by_project(time_entries):
@@ -217,20 +221,24 @@ def build_message(start, end, workhours, grouped_entries):
     for date in grouped_entries:
         message += '# Date : %s\n' % date or 'None'
         for project in grouped_entries[date]:
+            total_hours = 0.0
             message += '    * Project : %s\n' % project or 'None'
             for entries in grouped_entries[date][project]:
                 message += '    |   Name : %s\n' % entries['name']
                 message += '    |         Duration (H:M:S) : %s\n' % get_hms_duration(entries['duration'])
                 hours = get_float_hours_duration(entries['duration'])
-                message += '    |         Duration (Hours) : %s\n' % hours
-                message += '    |         Duration (Days) : %s\n' % get_float_days_duration(hours, workhours)
+                total_hours += hours
+                message += '    |         Duration (Hours) : %s\n' % round(hours, 3)
+                message += '    |         Duration (Days) : %s\n' % round(get_float_days_duration(hours, workhours), 3)
+            message += '    > Duration total (Hours) : %s\n' % round(total_hours, 3)
+            message += '    > Duration total (Days) : %s\n' % round(get_float_days_duration(total_hours, workhours), 3)
     return message
 
 
 def send_by_mail(message, mail_to, mail_from, subject):
     server = smtplib.SMTP()
     server.connect()
-    header = 'To:' + mail_to + '\n' + 'From: ' + mail_from + '\n' + 'Subject:' + subject +'  \n'
+    header = 'To:' + mail_to + '\n' + 'From: ' + mail_from + '\n' + 'Subject:' + subject + '  \n'
     msg = header + '\n %s \n\n' % message
     server.sendmail(mail_from, mail_to, msg.encode('utf-8'))
     server.close()
