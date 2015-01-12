@@ -73,4 +73,4 @@ Output :
 
 Todo :
 ===================
-* test new smtplib and email smtplib improvements
+* test new smtplib auth (not fully tested) and maybe an email smtplib improvements
