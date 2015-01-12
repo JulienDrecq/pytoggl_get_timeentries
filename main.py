@@ -7,6 +7,7 @@ import datetime
 import smtplib
 import requests
 import collections
+from socket import error as socket_error
 from datetime import date, timedelta
 
 
@@ -107,6 +108,7 @@ def check_dates(dstart, dend):
 
 def add_options(parser):
     parser.add_argument('api_token', type=str, help='Toggl API token')
+    # TOGGL OPTIONS
     parser.add_argument('-v',
                         type=str,
                         help='Toggl API version (default : v8)',
@@ -117,6 +119,7 @@ def add_options(parser):
                         help='Toggl API URL (default : https://www.toggl.com/api/)',
                         dest='api_url',
                         default='https://www.toggl.com/api/')
+    # HOURS AND DATES OPTIONS
     parser.add_argument('--hours',
                         type=int,
                         help='Number of hours in a workday (default : 8)',
@@ -130,23 +133,45 @@ def add_options(parser):
                         type=mkdate,
                         help='End date for time entries',
                         dest='dend')
+    # EMAIL OPTIONS
     parser.add_argument('--send_by_mail',
                         action='store_true',
-                        help='Active sending by mail for times entries',
+                        help='Enable email sending for times entries',
                         dest='send_by_mail')
     parser.add_argument('-t', '--to',
                         type=str,
-                        help='Specify an receiver for sending for times entries',
-                        dest='mail_to')
+                        help='Specify a receiver for email sending',
+                        dest='email_to')
     parser.add_argument('-f', '--from',
                         type=str,
-                        help='Specify an sender for sending for times entries',
-                        dest='mail_from')
+                        help='Specify a sender for email sending',
+                        dest='email_from')
     parser.add_argument('-s', '--subject',
                         type=str,
-                        help='Specify an subject for sending for times entries',
+                        help='Specify a subject for email sending',
                         dest='subject',
                         default='PyToggl time entries')
+    parser.add_argument('--smtp',
+                        type=str,
+                        dest="smtp",
+                        help="SMTP serveur")
+    parser.add_argument('--smtp-port',
+                        type=int,
+                        dest="smtp_port",
+                        help="SMTP port")
+    parser.add_argument('--starttls',
+                        action='store_true',
+                        help='Start TLS mode',
+                        dest='starttls')
+    parser.add_argument('--login',
+                        type=str,
+                        dest='login',
+                        help="SMTP login")
+    parser.add_argument('--password',
+                        type=str,
+                        dest='password',
+                        help="SMTP password")
+
 
 
 def get_ordered_dict(datas):
@@ -235,15 +260,30 @@ def build_message(start, end, workhours, grouped_entries):
     return message
 
 
-def send_by_mail(message, mail_to, mail_from, subject):
-    server = smtplib.SMTP()
-    server.connect()
-    header = 'To:' + mail_to + '\n' + 'From: ' + mail_from + '\n' + 'Subject:' + subject + '  \n'
-    msg = header + '\n %s \n\n' % message
-    server.sendmail(mail_from, mail_to, msg.encode('utf-8'))
-    server.close()
-    return True
-
+def send_by_email(message, smtp, smtp_port, starttls, login, password, email_to, email_from, subject):
+    server = None
+    try:
+        if smtp and smtp_port:
+            server = smtplib.SMTP(smtp, smtp_port)
+        else:
+            server = smtplib.SMTP()
+            server.connect()
+        if starttls:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+        if login and password:
+            server.login(login, password)
+        header = 'To:' + email_to + '\n' + 'From: ' + email_from + '\n' + 'Subject:' + subject + '\n'
+        msg = header + '\n%s \n\n' % message
+        server.sendmail(email_from, email_to, msg.encode('utf-8'))
+    except socket_error, e:
+        print 'An error has occured during SMTP connection : %s' % e
+    except Exception, e:
+        print 'An error has occured during email creation : %s' % e
+    finally:
+        if server:
+            server.close()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='List Toggl time entries for invoicing report')
@@ -256,14 +296,21 @@ if __name__ == '__main__':
         start, end, entries = toggl.get_range_time_entries(args.dstart, args.dend)
     else:
         start, end, entries = toggl.get_week_time_entries()
-    if args.send_by_mail and args.mail_to and args.mail_from:
-        message = build_message(start,
+
+    grouped_entries = group_by_date_and_project(entries)
+    message = build_message(start,
                             end,
                             args.workhours,
-                            group_by_date_and_project(entries))
-        send_by_mail(message, args.mail_to, args.mail_from, args.subject)
+                            grouped_entries)
+    if args.send_by_mail and args.email_to and args.email_from:
+        send_by_email(message,
+                      args.smtp,
+                      args.smtp_port,
+                      args.starttls,
+                      args.login,
+                      args.password,
+                      args.email_to,
+                      args.email_from,
+                      args.subject)
     else:
-        print build_message(start,
-                            end,
-                            args.workhours,
-                            group_by_date_and_project(entries))
+        print message

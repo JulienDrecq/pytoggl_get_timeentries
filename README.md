@@ -73,5 +73,4 @@ Output :
 
 Todo :
 ===================
-* add options for smtp configuration (server, user, password, etc)
-* add options for file export (csv ?)
+* test new smtplib and email smtplib improvements
