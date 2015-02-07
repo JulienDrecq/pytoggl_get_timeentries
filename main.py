@@ -304,6 +304,11 @@ if __name__ == '__main__':
                             args.workhours,
                             grouped_entries)
     if args.send_by_mail and args.email_to and args.email_from:
+        start = start.split('T')
+        start = start and start[0]
+        end = end.split('T')
+        end = end and end[0]
+        args.subject += ' (%s - %s)' %(start, end)
         send_by_email(message,
                       args.smtp,
                       args.smtp_port,
