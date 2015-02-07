@@ -253,10 +253,11 @@ def build_message(start, end, workhours, grouped_entries):
                 message += '    |         Duration (H:M:S) : %s\n' % get_hms_duration(entries['duration'])
                 hours = get_float_hours_duration(entries['duration'])
                 total_hours += hours
-                message += '    |         Duration (Hours) : %s\n' % round(hours, 3)
-                message += '    |         Duration (Days) : %s\n' % round(get_float_days_duration(hours, workhours), 3)
-            message += '    > Duration total (Hours) : %s\n' % round(total_hours, 3)
-            message += '    > Duration total (Days) : %s\n' % round(get_float_days_duration(total_hours, workhours), 3)
+                message += '    |         Duration (Hours) : %s\n' % round(hours, 4)
+                message += '    |         Duration (Days) : %s\n' % round(get_float_days_duration(hours, workhours), 4)
+            message += '    > Duration total (Hours) : %s\n' % round(total_hours, 4)
+            message += '    > Duration total (Days) : %s\n' % round(get_float_days_duration(total_hours, workhours), 4)
+        message += '------------------------------------------------\n'
     return message
 
 
