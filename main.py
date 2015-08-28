@@ -77,6 +77,8 @@ class TogglObject(object):
         entries = []
         projects = {}
         for te in time_entries:
+            if 'description' not in te:
+                te['description'] = 'None'
             project_name = None
             if te.get('pid', False):
                 if te['pid'] not in projects:
@@ -245,6 +247,7 @@ def build_message(start, end, workhours, grouped_entries):
     message += "\n"
     for date in grouped_entries:
         message += '# Date : %s\n' % date or 'None'
+        total_hours_day = 0.0
         for project in grouped_entries[date]:
             total_hours = 0.0
             message += '    * Project : %s\n' % project or 'None'
@@ -255,8 +258,11 @@ def build_message(start, end, workhours, grouped_entries):
                 total_hours += hours
                 message += '    |         Duration (Hours) : %s\n' % round(hours, 3)
                 message += '    |         Duration (Days) : %s\n' % round(get_float_days_duration(hours, workhours), 3)
+            total_hours_day += total_hours
             message += '    > Duration total (Hours) : %s\n' % round(total_hours, 3)
             message += '    > Duration total (Days) : %s\n' % round(get_float_days_duration(total_hours, workhours), 3)
+        message += '> Total (Hours) : %s\n' % round(total_hours_day, 3)
+        message += '> Total (Days) : %s\n' % round(get_float_days_duration(total_hours_day, workhours), 3)
     return message
 
 
