@@ -1,14 +1,20 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 __author__ = 'Maxime JACQUET <m.jacquet@outlook.fr> & Julien DRECQ <drecq.julien@outlook.com>'
-__version__ = 0.2
+__version__ = 0.3
 import argparse
 import datetime
 import smtplib
 import requests
 import collections
+import re
 from socket import error as socket_error
 from datetime import date, timedelta
+
+try:
+    from redmine import Redmine
+except ImportError:
+    print "You need to install python-redmine package, see https://pypi.python.org/pypi/python-redmine/"
 
 
 def get_week_days_range(year, week):
@@ -23,9 +29,26 @@ def get_week_days_range(year, week):
     return d + dlt,  d + dlt + timedelta(days=6)
 
 
+class RedmineObject(object):
+
+    def __init__(self, redmine_url=None, redmine_api_key=None):
+        self.redmine_url = redmine_url
+        self.redmine_api_key = redmine_api_key
+        self.redmine = False
+
+    def connect(self):
+        assert self.redmine_url is not None, "Must specify the Redmine URL"
+        assert self.redmine_api_key is not None, "Must specify the API key"
+        try:
+            self.redmine = Redmine(self.redmine_url, key=self.redmine_api_key)
+        except Exception, e:
+            print "An error has occured during Redmine connection : %s" % e
+        return self.redmine
+
+
 class TogglObject(object):
 
-    def __init__(self, api_token=None, api_version=None, url_toggl=None):
+    def __init__(self, api_token=None, api_version=None, url_toggl=None, redmine=None):
         self.api_token = api_token
         self.api_version = api_version if api_version.endswith('/') else api_version + '/'
         self.url_toggl = url_toggl if url_toggl.endswith('/') else url_toggl + '/'
@@ -101,6 +124,35 @@ def mkdate(datestr):
     return datetime.datetime.strptime(datestr, '%Y-%m-%d')
 
 
+def get_redmine(url, key):
+    if not url or not key:
+        print "You must specify Redmine URL / API key"
+        return False
+    try:
+        redmine_obj = RedmineObject(url, key)
+        return redmine_obj.connect()
+    except Exception, e:
+        print "An error has occured during Redmine connection : %s" % e
+    return False
+
+
+def set_redmine_time_entry(redmine, description, hours):
+    issues = re.findall("\#[0-9]*", description)
+    if issues:
+        hours_by_issue = hours / len(issues)
+        for issue in issues:
+            try:
+                issue = redmine.issue.get(int(issue[1:]))
+                time_entry_id = redmine.time_entry.create(project_id=issue.project.id,
+                                                          hours=hours_by_issue,
+                                                          comments='Created by PyTOGGL on %s' % datetime.datetime.now())
+                redmine.time_entry.update(time_entry_id, issue_id=issue.id)
+            except:
+                pass
+                return False
+    return True
+
+
 def check_dates(dstart, dend):
     if not dstart or not dend:
         return False
@@ -121,6 +173,17 @@ def add_options(parser):
                         help='Toggl API URL (default : https://www.toggl.com/api/)',
                         dest='api_url',
                         default='https://www.toggl.com/api/')
+    # REDMINE OPTIONS
+    parser.add_argument('--redmine', dest='redmine', action='store_true')
+    parser.add_argument('--rurl',
+                        type=str,
+                        help='Redmine URL',
+                        dest='redmine_url')
+    parser.add_argument('--rkey',
+                        type=str,
+                        help='Redmine API key',
+                        dest='redmine_key')
+
     # HOURS AND DATES OPTIONS
     parser.add_argument('--hours',
                         type=int,
@@ -232,7 +295,7 @@ def get_float_days_duration(hours, workhours):
     return hours / workhours
 
 
-def build_message(start, end, workhours, grouped_entries):
+def build_message(start, end, workhours, grouped_entries, redmine):
     message = "------------------------------------------------\n"
     message += "|              TOGGL TIME ENTRIES              |\n"
     message += "------------------------------------------------\n"
@@ -252,12 +315,16 @@ def build_message(start, end, workhours, grouped_entries):
             total_hours = 0.0
             message += '    * Project : %s\n' % project or 'None'
             for entries in grouped_entries[date][project]:
-                message += '    |   Name : %s\n' % entries['name']
-                message += '    |         Duration (H:M:S) : %s\n' % get_hms_duration(entries['duration'])
                 hours = get_float_hours_duration(entries['duration'])
                 total_hours += hours
+
+                message += '    |   Name : %s\n' % entries['name']
+                message += '    |         Duration (H:M:S) : %s\n' % get_hms_duration(entries['duration'])
                 message += '    |         Duration (Hours) : %s\n' % round(hours, 3)
                 message += '    |         Duration (Days) : %s\n' % round(get_float_days_duration(hours, workhours), 3)
+                if redmine:
+                    created = set_redmine_time_entry(redmine, entries['name'], round(hours, 3))
+                    message += '    |         Redmine : %s\n' % ('OK' if created else 'NOK')
             total_hours_day += total_hours
             message += '    > Duration total (Hours) : %s\n' % round(total_hours, 3)
             message += '    > Duration total (Days) : %s\n' % round(get_float_days_duration(total_hours, workhours), 3)
@@ -292,9 +359,13 @@ def send_by_email(message, smtp, smtp_port, starttls, login, password, email_to,
             server.close()
 
 if __name__ == '__main__':
+
     parser = argparse.ArgumentParser(description='List Toggl time entries for invoicing report')
     add_options(parser)
     args = parser.parse_args()
+
+    redmine = get_redmine(args.redmine_url, args.redmine_key)
+
     toggl = TogglObject(args.api_token,
                         args.api_version,
                         args.api_url)
@@ -307,7 +378,8 @@ if __name__ == '__main__':
     message = build_message(start,
                             end,
                             args.workhours,
-                            grouped_entries)
+                            grouped_entries,
+                            redmine)
     if args.send_by_mail and args.email_to and args.email_from:
         send_by_email(message,
                       args.smtp,

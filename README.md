@@ -13,6 +13,15 @@ $ python main.py 'YOU_API_TOKEN'
 /!\ For a specific dates range the limit of the return is 1000. So only the first 1000 found time entries are returned /!\ (view Toggl API : https://github.com/toggl/toggl_api_docs/blob/master/chapters/time_entries.md#get-time-entries-started-in-a-specific-time-range)
 
 
+Redmine time entries :
+===================
+You can auto create time entries if the "Redmine" option is set (--redmine option)
+You have to set the "Redmine URL" and the "Redmine API key" options (--rurl and --rkey options)
+
+You need to specify the ticket number in the TOGGL time entrie's description (ie : #12345 - TEST TOGGL TO REDMINE)
+If many ticket number found in the description, a time entry will be created by ticket. The duration will be divided by the number of ticket
+
+
 Exemple : 
 ===================
 The script is started the 2014-01-04, the current work week will be 2014-12-29 - 2015-01-04
@@ -74,3 +83,5 @@ Output :
 Todo :
 ===================
 * test new smtplib auth (not fully tested) and maybe an email smtplib improvements
+* better options management (maybe cfg file instead ?)
+* general improvement
