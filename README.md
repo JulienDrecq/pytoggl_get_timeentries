@@ -44,6 +44,8 @@ Output :
         |         Duration (Days) : 1.094
         > Duration total (Hours) : 8.75
         > Duration total (Days) : 1.094
+    > Total (Hours) : 8.75
+    > Total (Days) : 1.094
     # Date : 2014-12-30
         * Project : PROJECT1
         |   Name : TIME ENTRY 2
@@ -52,6 +54,8 @@ Output :
         |         Duration (Days) : 1.073
         > Duration total (Hours) : 8.585
         > Duration total (Days) : 1.073
+    > Total (Hours) : 8.585
+    > Total (Days) : 1.073
     # Date : 2014-12-31
         * Project : PROJECT1
         |   Name : TIME ENTRY 3
@@ -60,6 +64,8 @@ Output :
         |         Duration (Days) : 1.049
         > Duration total (Hours) : 8.389
         > Duration total (Days) : 1.049
+    > Total (Hours) : 8.389
+    > Total (Days) : 1.049
     # Date : 2015-01-02
         * Project : PROJECT4
         |   Name : TIME ENTRY 4
@@ -79,6 +85,8 @@ Output :
         |         Duration (Days) : 0.188
         > Duration total (Hours) : 1.5
         > Duration total (Days) : 0.188
+    > Total (Hours) : 11.846
+    > Total (Days) : 1.481
 
 Todo :
 ===================
