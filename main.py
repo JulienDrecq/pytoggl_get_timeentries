@@ -132,7 +132,7 @@ def get_redmine(url, key):
         redmine_obj = RedmineObject(url, key)
         return redmine_obj.connect()
     except Exception, e:
-        print "An error has occured during Redmine connection : %s" % e
+        print "An error has occurred during Redmine connection : %s" % e
     return False
 
 
@@ -352,9 +352,9 @@ def send_by_email(message, smtp, smtp_port, starttls, login, password, email_to,
         msg = header + '\n%s \n\n' % message
         server.sendmail(email_from, email_to, msg.encode('utf-8'))
     except socket_error, e:
-        print 'An error has occured during SMTP connection : %s' % e
+        print 'An error has occurred during SMTP connection : %s' % e
     except Exception, e:
-        print 'An error has occured during email creation : %s' % e
+        print 'An error has occurred during email creation : %s' % e
     finally:
         if server:
             server.close()
