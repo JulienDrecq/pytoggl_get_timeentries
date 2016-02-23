@@ -3,6 +3,10 @@ pytoggl_get_timeentries
 
 A small python script to get your current work week Toggl time entries (or for a specific dates range)
 
+Requirements
+===================
+python-redmine : https://pypi.python.org/pypi/python-redmine/
+
 
 How to use : 
 ===================
