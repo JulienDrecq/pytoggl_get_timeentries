@@ -136,7 +136,7 @@ def get_redmine(url, key):
     return False
 
 
-def set_redmine_time_entry(redmine, description, hours):
+def set_redmine_time_entry(redmine, date, description, hours):
     issues = re.findall("\#[0-9]*", description)
     result_str = ""
     if issues:
@@ -145,6 +145,7 @@ def set_redmine_time_entry(redmine, description, hours):
             try:
                 i = redmine.issue.get(int(issue[1:]))
                 time_entry_id = redmine.time_entry.create(project_id=i.project.id,
+                                                          spent_on=date,
                                                           hours=hours_by_issue,
                                                           comments='Created by PyTOGGL on %s' % datetime.datetime.now())
                 redmine.time_entry.update(time_entry_id, issue_id=i.id)
@@ -324,7 +325,7 @@ def build_message(start, end, workhours, grouped_entries, redmine):
                 message += '    |         Duration (Hours) : %s\n' % round(hours, 3)
                 message += '    |         Duration (Days) : %s\n' % round(get_float_days_duration(hours, workhours), 3)
                 if redmine:
-                    created = set_redmine_time_entry(redmine, entries['name'], round(hours, 3))
+                    created = set_redmine_time_entry(redmine, date, entries['name'], round(hours, 3))
                     message += '    |         Redmine : %s\n' % created
             total_hours_day += total_hours
             message += '    > Duration total (Hours) : %s\n' % round(total_hours, 3)
