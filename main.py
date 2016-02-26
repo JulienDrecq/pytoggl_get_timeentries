@@ -369,7 +369,13 @@ if __name__ == '__main__':
 
     redmine = False
     if args.redmine:
-        redmine = get_redmine(args.redmine_url, args.redmine_key)
+        response = raw_input("args --redmine detected, Are you sure to send time entrie's on redmine server (y/n)?")
+        if response == 'y':
+            redmine = get_redmine(args.redmine_url, args.redmine_key)
+        else:
+            print "no send time entrie's on redmine server"
+            redmine = False
+
 
     toggl = TogglObject(args.api_token,
                         args.api_version,
