@@ -332,6 +332,7 @@ def build_message(start, end, workhours, grouped_entries, redmine):
             message += '    > Duration total (Days) : %s\n' % round(get_float_days_duration(total_hours, workhours), 3)
         message += '> Total (Hours) : %s\n' % round(total_hours_day, 3)
         message += '> Total (Days) : %s\n' % round(get_float_days_duration(total_hours_day, workhours), 3)
+        message += '------------------------------------------------\n'
     return message
 
 
@@ -383,6 +384,11 @@ if __name__ == '__main__':
                             grouped_entries,
                             redmine)
     if args.send_by_mail and args.email_to and args.email_from:
+        start = start.split('T')
+        start = start and start[0]
+        end = end.split('T')
+        end = end and end[0]
+        args.subject += ' (%s - %s)' %(start, end)
         send_by_email(message,
                       args.smtp,
                       args.smtp_port,
