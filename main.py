@@ -367,7 +367,9 @@ if __name__ == '__main__':
     add_options(parser)
     args = parser.parse_args()
 
-    redmine = get_redmine(args.redmine_url, args.redmine_key)
+    redmine = False
+    if args.redmine:
+        redmine = get_redmine(args.redmine_url, args.redmine_key)
 
     toggl = TogglObject(args.api_token,
                         args.api_version,

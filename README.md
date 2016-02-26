@@ -50,7 +50,7 @@ Output :
         > Duration total (Days) : 1.094
     > Total (Hours) : 8.75
     > Total (Days) : 1.094
-------------------------------------------------
+    ------------------------------------------------
     # Date : 2014-12-30
         * Project : PROJECT1
         |   Name : TIME ENTRY 2
@@ -61,7 +61,7 @@ Output :
         > Duration total (Days) : 1.073
     > Total (Hours) : 8.585
     > Total (Days) : 1.073
-------------------------------------------------
+    ------------------------------------------------
     # Date : 2014-12-31
         * Project : PROJECT1
         |   Name : TIME ENTRY 3
@@ -72,7 +72,7 @@ Output :
         > Duration total (Days) : 1.049
     > Total (Hours) : 8.389
     > Total (Days) : 1.049
-------------------------------------------------
+    ------------------------------------------------
     # Date : 2015-01-02
         * Project : PROJECT4
         |   Name : TIME ENTRY 4
@@ -94,7 +94,7 @@ Output :
         > Duration total (Days) : 0.188
     > Total (Hours) : 11.846
     > Total (Days) : 1.481
-------------------------------------------------
+    ------------------------------------------------
 
 Exemple with --redmine option: 
 ===================
@@ -125,7 +125,6 @@ Output :
         |         Duration (Days) : 0.313
         > Duration total (Hours) : 10.346
         > Duration total (Days) : 1,293
-------------------------------------------------
         * Project : PROJECT TEST REDMINE
         |   Name : TIME ENTRY TEST & #12345 FIX AND #67890 DEV AND TEST
         |         Duration (H:M:S) : 1:30:00
@@ -136,7 +135,7 @@ Output :
         > Duration total (Days) : 0.188
     > Total (Hours) : 11.846
     > Total (Days) : 1.481
-------------------------------------------------
+    ------------------------------------------------
 
 As you can see a new line is displayed on the message "Redmine : #12345 : OK - #67890 : OK".
 This will let you know which ticket has been created on Redmine (will display "ERROR" if an error has occured)
