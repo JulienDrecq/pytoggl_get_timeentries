@@ -352,7 +352,7 @@ def send_by_email(message, smtp, smtp_port, starttls, login, password, email_to,
             server.login(login, password)
         header = 'To:' + email_to + '\n' + 'From: ' + email_from + '\n' + 'Subject:' + subject + '\n'
         msg = header + '\n%s \n\n' % message
-        server.sendmail(email_from, email_to, msg.encode('utf-8'))
+        server.sendmail(email_from, email_to, msg.encode('latin-1'))
     except socket_error, e:
         print 'An error has occurred during SMTP connection : %s' % e
     except Exception, e:
@@ -390,7 +390,7 @@ if __name__ == '__main__':
         start = start and start[0]
         end = end.split('T')
         end = end and end[0]
-        args.subject += ' (%s - %s)' %(start, end)
+        args.subject += ' (%s - %s)' % (start, end)
         send_by_email(message,
                       args.smtp,
                       args.smtp_port,
