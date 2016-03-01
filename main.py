@@ -373,7 +373,7 @@ if __name__ == '__main__':
         if response == 'y':
             redmine = get_redmine(args.redmine_url, args.redmine_key)
         else:
-            print "no send time entrie's on redmine server"
+            print "Time entries will not be sent to Redmine"
             redmine = False
 
 
