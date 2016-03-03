@@ -13,6 +13,7 @@ from datetime import date, timedelta
 
 try:
     from redmine import Redmine
+    from redmine.exceptions import AuthError
 except ImportError:
     print "You need to install python-redmine package, see https://pypi.python.org/pypi/python-redmine/"
 
@@ -40,7 +41,10 @@ class RedmineObject(object):
         assert self.redmine_url is not None, "Must specify the Redmine URL"
         assert self.redmine_api_key is not None, "Must specify the API key"
         try:
+            Redmine(self.redmine_url, key=self.redmine_api_key).auth()
             self.redmine = Redmine(self.redmine_url, key=self.redmine_api_key)
+        except AuthError:
+            print "Redmine AuthError, API Key is invalid. Time entries will not be sent to Redmine"
         except Exception, e:
             print "An error has occured during Redmine connection : %s" % e
         return self.redmine
