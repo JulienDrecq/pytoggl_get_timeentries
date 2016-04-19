@@ -25,7 +25,7 @@ You have to set the "Redmine URL" and the "Redmine API key" options (--rurl and 
 You need to specify the ticket number in the TOGGL time entrie's description (ie : #12345 - TEST TOGGL TO REDMINE)
 If many ticket number found in the description, a time entry will be created by ticket. The duration will be divided by the number of ticket
 
-If you want to display the time entrie's tracker for a better issue tracking can add the --rtracker optinon
+If you want to display the time entrie's tracker for a better issue tracking can add the --rtracker option
 It will display the tracker for each issue in the toggl time entrie's description.
 
 Exemple without --redmine option: 
