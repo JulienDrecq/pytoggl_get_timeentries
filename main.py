@@ -153,10 +153,24 @@ def set_redmine_time_entry(redmine, date, description, hours):
                                                           hours=hours_by_issue,
                                                           comments='Created by PyTOGGL on %s' % datetime.datetime.now())
                 redmine.time_entry.update(time_entry_id, issue_id=i.id)
-                result_str += "%s : OK - " % issue.decode('utf-8')
+                result_str += "    |                 %s : OK\n" % issue.decode('utf-8')
             except:
-                result_str += "%s : ERROR - " % issue.decode('utf-8')
+                result_str += "    |                 %s : ERROR\n" % issue.decode('utf-8')
     return result_str
+
+
+def get_redmine_time_entry_tracker(description):
+    issues = re.findall("\#[0-9]*", description)
+    result_str = ""
+    if issues:
+        for issue in issues:
+            try:
+                i = redmine.issue.get(int(issue[1:]))
+                result_str += "    |                 %s -> %s\n" % (issue.decode('utf-8'), i.tracker and i.tracker.name)
+            except:
+                result_str += "    |                 %s -> Unknown\n" % issue.decode('utf-8')
+    return result_str
+
 
 
 def check_dates(dstart, dend):
@@ -189,6 +203,7 @@ def add_options(parser):
                         type=str,
                         help='Redmine API key',
                         dest='redmine_key')
+    parser.add_argument('--rtracker', dest='redmine_tracker', action='store_true')
 
     # HOURS AND DATES OPTIONS
     parser.add_argument('--hours',
@@ -301,7 +316,7 @@ def get_float_days_duration(hours, workhours):
     return hours / workhours
 
 
-def build_message(start, end, workhours, grouped_entries, redmine):
+def build_message(start, end, workhours, grouped_entries, redmine, project_list):
     message = "------------------------------------------------\n"
     message += "|              TOGGL TIME ENTRIES              |\n"
     message += "------------------------------------------------\n"
@@ -330,7 +345,10 @@ def build_message(start, end, workhours, grouped_entries, redmine):
                 message += '    |         Duration (Days) : %s\n' % round(get_float_days_duration(hours, workhours), 3)
                 if redmine:
                     created = set_redmine_time_entry(redmine, date, entries['name'], round(hours, 3))
-                    message += '    |         Redmine : %s\n' % created
+                    message += '    |         Redmine : \n%s' % created
+                    if project in project_list:
+                        tracker = get_redmine_time_entry_tracker(entries['name'])
+                        message += '    |         Tracker : \n%s' % tracker
             total_hours_day += total_hours
             message += '    > Duration total (Hours) : %s\n' % round(total_hours, 3)
             message += '    > Duration total (Days) : %s\n' % round(get_float_days_duration(total_hours, workhours), 3)
@@ -373,13 +391,25 @@ if __name__ == '__main__':
 
     redmine = False
     if args.redmine:
-        response = raw_input("args --redmine detected, Are you sure to send time entrie's on redmine server (y/n)?")
-        if response == 'y':
+        project_list = []
+        response = raw_input("args --redmine detected, "
+                             "Are you sure to send time entrie's on redmine server (y / n) ?\n")
+        if response.lower() in ['y', 'yes']:
             redmine = get_redmine(args.redmine_url, args.redmine_key)
         else:
             print "Time entries will not be sent to Redmine"
             redmine = False
 
+        if args.redmine_tracker:
+            print "args --rtracker detected."
+            print "For which project do you want to display time entrie's tracker ?"
+            pname = False
+
+            while pname not in ['q', 'quit']:
+                pname = raw_input('Type Project\'s name. (q / Q to quit)\n')
+                if pname.lower() in ['q', 'quit']:
+                    break
+                project_list.append(pname)
 
     toggl = TogglObject(args.api_token,
                         args.api_version,
@@ -394,7 +424,8 @@ if __name__ == '__main__':
                             end,
                             args.workhours,
                             grouped_entries,
-                            redmine)
+                            redmine,
+                            project_list)
     if args.send_by_mail and args.email_to and args.email_from:
         start = start.split('T')
         start = start and start[0]

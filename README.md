@@ -25,6 +25,8 @@ You have to set the "Redmine URL" and the "Redmine API key" options (--rurl and 
 You need to specify the ticket number in the TOGGL time entrie's description (ie : #12345 - TEST TOGGL TO REDMINE)
 If many ticket number found in the description, a time entry will be created by ticket. The duration will be divided by the number of ticket
 
+If you want to display the time entrie's tracker for a better issue tracking can add the --rtracker optinon
+It will display the tracker for each issue in the toggl time entrie's description.
 
 Exemple without --redmine option: 
 ===================
@@ -130,7 +132,9 @@ Output :
         |         Duration (H:M:S) : 1:30:00
         |         Duration (Hours) : 1
         |         Duration (Days) : 0.188
-        |         Redmine : #12345 : OK - #67890 : OK
+        |         Redmine : 
+        |                 #12345 : OK
+        |                 #67890 : OK
         > Duration total (Hours) : 1.5
         > Duration total (Days) : 0.188
     > Total (Hours) : 11.846
@@ -139,6 +143,44 @@ Output :
 
 As you can see a new line is displayed on the message "Redmine : #12345 : OK - #67890 : OK".
 This will let you know which ticket has been created on Redmine (will display "ERROR" if an error has occured)
+
+The same output with the --rtracker option : 
+
+    ------------------------------------------------
+    |              TOGGL TIME ENTRIES              |
+    ------------------------------------------------
+    Here are your Toggl's time entries.
+    From : 2016-02-22
+    To : 2016-02-26
+    
+    # Date : 2015-01-02
+        * Project : PROJECT 1
+        |   Name : TIME ENTRY 1
+        |         Duration (H:M:S) : 7:50:44
+        |         Duration (Hours) : 7.846
+        |         Duration (Days) : 0.980
+        |   Name : TIME ENTRY 2
+        |         Duration (H:M:S) : 2:30:00
+        |         Duration (Hours) : 2.5
+        |         Duration (Days) : 0.313
+        > Duration total (Hours) : 10.346
+        > Duration total (Days) : 1,293
+        * Project : PROJECT TEST REDMINE
+        |   Name : TIME ENTRY TEST & #12345 FIX AND #67890 DEV AND TEST
+        |         Duration (H:M:S) : 1:30:00
+        |         Duration (Hours) : 1
+        |         Duration (Days) : 0.188
+        |         Redmine : 
+        |                 #12345 : OK
+        |                 #67890 : OK
+        |         Tracker : 
+        |                 #12345 : Issue
+        |                 #67890 : Evolution
+        > Duration total (Hours) : 1.5
+        > Duration total (Days) : 0.188
+    > Total (Hours) : 11.846
+    > Total (Days) : 1.481
+    ------------------------------------------------
 
 
 Todo :
