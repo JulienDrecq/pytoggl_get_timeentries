@@ -159,16 +159,19 @@ def set_redmine_time_entry(redmine, date, description, hours):
     return result_str
 
 
-def get_redmine_time_entry_tracker(description):
+def get_redmine_time_entry_datas(description):
     issues = re.findall("\#[0-9]*", description)
     result_str = ""
     if issues:
         for issue in issues:
             try:
                 i = redmine.issue.get(int(issue[1:]))
-                result_str += "    |                 %s -> %s\n" % (issue.decode('utf-8'), i.tracker and i.tracker.name)
+                result_str += "    |                 %s (Tracker : %s - Project : %s)\n" % (
+                    issue.decode('utf-8'),
+                    i.tracker and i.tracker.name,
+                    i.project and i.project.name)
             except:
-                result_str += "    |                 %s -> Unknown\n" % issue.decode('utf-8')
+                result_str += "    |                 %s (Unknown)\n" % issue.decode('utf-8')
     return result_str
 
 
@@ -347,8 +350,8 @@ def build_message(start, end, workhours, grouped_entries, redmine, project_list)
                     created = set_redmine_time_entry(redmine, date, entries['name'], round(hours, 3))
                     message += '    |         Redmine : \n%s' % created
                     if project in project_list:
-                        tracker = get_redmine_time_entry_tracker(entries['name'])
-                        message += '    |         Tracker : \n%s' % tracker
+                        issue_datas = get_redmine_time_entry_datas(entries['name'])
+                        message += '    |         Infos : \n%s' % issue_datas
             total_hours_day += total_hours
             message += '    > Duration total (Hours) : %s\n' % round(total_hours, 3)
             message += '    > Duration total (Days) : %s\n' % round(get_float_days_duration(total_hours, workhours), 3)

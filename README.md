@@ -173,9 +173,9 @@ The same output with the --rtracker option :
         |         Redmine : 
         |                 #12345 : OK
         |                 #67890 : OK
-        |         Tracker : 
-        |                 #12345 : Issue
-        |                 #67890 : Evolution
+        |         Infos : 
+        |                 #12345 (Tracker : Issue - Project : PROJECT TEST REDMINE 1)
+        |                 #67890 (Tracker : Evolution - Project : PROJECT TEST REDMINE 2)
         > Duration total (Hours) : 1.5
         > Duration total (Days) : 0.188
     > Total (Hours) : 11.846
