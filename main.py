@@ -13,7 +13,7 @@ from datetime import date, timedelta
 
 try:
     from redmine import Redmine
-    from redmine.exceptions import AuthError, ResourceAttrError
+    from redmine.exceptions import AuthError
 except ImportError:
     print "You need to install python-redmine package, see https://pypi.python.org/pypi/python-redmine/"
 
@@ -141,14 +141,6 @@ def get_redmine(url, key):
 
 
 def set_redmine_time_entry(redmine, date, description, hours):
-    def get_parent_project_id(project):
-        while True:
-            try:
-                project = project.parent
-
-            except ResourceAttrError:
-                break
-        return project
     issues = re.findall("\#[0-9]*", description)
     result_str = ""
     if issues:
@@ -156,12 +148,8 @@ def set_redmine_time_entry(redmine, date, description, hours):
         for issue in issues:
             try:
                 i = redmine.issue.get(int(issue[1:]))
-                project_parent = get_parent_project_id(redmine.project.get(i.project.id))
-                time_entry_id = redmine.time_entry.create(project_id=project_parent.id,
-                                                          spent_on=date,
-                                                          hours=hours_by_issue,
-                                                          comments='Created by PyTOGGL on %s' % datetime.datetime.now())
-                redmine.time_entry.update(time_entry_id, issue_id=i.id)
+                redmine.time_entry.create(issue_id=i.id, spent_on=date, hours=hours_by_issue,
+                                          comments='Created by PyTOGGL on %s' % datetime.datetime.now())
                 result_str += "    |                 %s : OK\n" % issue.decode('utf-8')
             except:
                 result_str += "    |                 %s : ERROR\n" % issue.decode('utf-8')
